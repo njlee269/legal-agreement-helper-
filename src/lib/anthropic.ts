@@ -1,17 +1,15 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function callClaude(system: string, userMessage: string): Promise<string> {
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 8192,
-    system,
-    messages: [{ role: 'user', content: userMessage }],
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.0-flash',
+    systemInstruction: system,
   });
 
-  const textBlock = response.content.find((b) => b.type === 'text');
-  return textBlock?.text ?? '';
+  const result = await model.generateContent(userMessage);
+  return result.response.text();
 }
 
 export async function callClaudeWithPdf(
@@ -19,28 +17,20 @@ export async function callClaudeWithPdf(
   userMessage: string,
   pdfBase64: string
 ): Promise<string> {
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 8192,
-    system,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'document',
-            source: {
-              type: 'base64',
-              media_type: 'application/pdf',
-              data: pdfBase64,
-            },
-          },
-          { type: 'text', text: userMessage },
-        ],
-      },
-    ],
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.0-flash',
+    systemInstruction: system,
   });
 
-  const textBlock = response.content.find((b) => b.type === 'text');
-  return textBlock?.text ?? '';
+  const result = await model.generateContent([
+    { text: userMessage },
+    {
+      inlineData: {
+        mimeType: 'application/pdf',
+        data: pdfBase64,
+      },
+    },
+  ]);
+
+  return result.response.text();
 }

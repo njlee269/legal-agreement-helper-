@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Agreement {
+  id                String   @id @default(cuid())
+
+  fileName          String
+  filePath          String
+  uploadedAt        DateTime @default(now())
+
+  contractName      String?
+  counterparty      String?
+  contractSummary   String?
+  contractAmount    String?
+  contractPeriod    String?
+
+  status            String   @default("uploaded")
+  stepStatuses      String   @default("{\"step1\":\"waiting\",\"step2\":\"waiting\",\"step3\":\"waiting\",\"step4\":\"waiting\"}")
+
+  summary           String?
+  questions         String?
+
+  answers           String?
+  allClear          Boolean  @default(false)
+
+  legalReview       String?
+  includeVASPCheck  Boolean  @default(false)
+  reviewNotes       String?
+  reviewDeadline    String?
+  documentLink      String?
+  historyBackground String?
+
+  opsMessage        String?
+  signerInfo        String?
+
+  updatedAt         DateTime @updatedAt
+}
